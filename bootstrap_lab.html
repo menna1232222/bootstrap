@@ -1,0 +1,588 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ملعب شبكة بوتستراب</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&family=IBM+Plex+Mono:wght@400;500;600&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Layout: right column = lesson + code editor, left column = live device preview (RTL).
+     Concept: drafting-table blueprint, 12 columns drawn as the page's own ruler. */
+  --bg: #EDF2F4;
+  --surface: #FFFFFF;
+  --ink: #10252C;
+  --muted: #4F6670;
+  --line: #CBD8DD;
+  --accent: #0B7285;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #D7EEF2;
+  --ok: #1B7F4B;
+  --ok-soft: #DDF3E6;
+  --bad: #B3261E;
+  --bad-soft: #FBE3E0;
+  --code-bg: #0F2229;
+  --code-ink: #DCEBEF;
+  --font-display: 'Cairo', 'Tajawal', system-ui, sans-serif;
+  --font-body: 'Tajawal', 'Cairo', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0C171C; --surface: #13242B; --ink: #E3EEF1; --muted: #9AB3BC; --line: #2A4049;
+    --accent: #4CC2D8; --accent-ink: #06222A; --accent-soft: #17414B;
+    --ok: #58D08F; --ok-soft: #173A29; --bad: #FF8A80; --bad-soft: #431C19;
+    --code-bg: #091317; --code-ink: #D5E7EC;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0C171C; --surface: #13242B; --ink: #E3EEF1; --muted: #9AB3BC; --line: #2A4049;
+  --accent: #4CC2D8; --accent-ink: #06222A; --accent-soft: #17414B;
+  --ok: #58D08F; --ok-soft: #173A29; --bad: #FF8A80; --bad-soft: #431C19;
+  --code-bg: #091317; --code-ink: #D5E7EC;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.65;
+  padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ltr { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+code { font-family: var(--font-mono); font-size: .88em; direction: ltr; unicode-bidi: isolate; display: inline-block; background: var(--accent-soft); color: var(--ink); padding: 0 .4em; border-radius: 4px; }
+
+.app { max-width: 1440px; margin-inline: auto; }
+
+/* header with 12-column ruler */
+.top {
+  position: relative;
+  display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: end; justify-content: space-between;
+  padding: 22px 22px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.top::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: repeating-linear-gradient(to left, var(--line) 0, var(--line) 1px, transparent 1px, transparent calc(100% / 12));
+  opacity: .55;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, transparent 85%);
+  mask-image: linear-gradient(to bottom, #000 0, transparent 85%);
+}
+.top > * { position: relative; min-width: 0; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.7rem, 4.2vw, 2.5rem); line-height: 1.2; margin: 0 0 4px; text-wrap: balance; }
+.top p { margin: 0; color: var(--muted); max-width: 52ch; }
+.levels { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pill {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-width: 40px; height: 40px; padding: 0 14px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  font-family: var(--font-display); font-weight: 600; font-size: .95rem;
+}
+.pill:hover { border-color: var(--accent); }
+.pill.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.pill.done:not(.on) { border-color: var(--ok); color: var(--ok); }
+.pill svg { width: 15px; height: 15px; }
+
+/* two-column workspace */
+.work { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 16px; align-items: start; }
+.col { display: grid; gap: 16px; min-width: 0; }
+.preview-col { position: sticky; top: 12px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; min-width: 0; }
+.eyebrow { font-family: var(--font-display); font-weight: 600; font-size: .8rem; letter-spacing: .04em; color: var(--accent); margin-bottom: 2px; }
+h2 { font-family: var(--font-display); font-weight: 800; font-size: 1.45rem; line-height: 1.3; margin: 0 0 6px; text-wrap: balance; }
+.panel p { margin: 0 0 12px; }
+
+.targets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 14px 0; }
+.tcell { text-align: start; display: grid; gap: 6px; padding: 8px 8px 9px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+.tcell:hover { border-color: var(--accent); }
+.tcell.ok { border-color: var(--ok); background: var(--ok-soft); }
+.tcell.bad { border-color: var(--bad); background: var(--bad-soft); }
+.tlabel { display: flex; justify-content: space-between; gap: 6px; font-family: var(--font-mono); font-size: .75rem; color: var(--muted); direction: ltr; }
+.tlabel b { color: var(--ink); font-weight: 600; }
+.strip { display: flex; gap: 2px; height: 22px; }
+.seg { flex: 1 1 0; min-width: 0; background: var(--accent); color: var(--accent-ink); font: 600 11px/22px var(--font-mono); text-align: center; border-radius: 3px; font-style: normal; }
+.seg.off { background: transparent; border: 1px dashed var(--line); }
+
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { min-height: 40px; padding: 6px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-weight: 500; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.btn.primary:hover { filter: brightness(1.08); }
+.msg { margin: 12px 0 0 !important; padding: 10px 12px; border-radius: 10px; background: var(--bg); min-height: 0; }
+.msg:empty { display: none; }
+.msg.ok { background: var(--ok-soft); color: var(--ok); font-weight: 700; }
+.msg.bad { background: var(--bad-soft); color: var(--bad); }
+.msg .btn { margin-inline-start: 10px; }
+.hint { margin: 12px 0 0 !important; padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); }
+
+dl.ref { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 12px 0 0; align-items: baseline; }
+dl.ref dt { margin: 0; } dl.ref dd { margin: 0; color: var(--muted); }
+
+/* editor */
+.editor-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.editor-bar strong { font-family: var(--font-mono); font-size: .85rem; font-weight: 600; letter-spacing: .06em; color: var(--muted); }
+#code {
+  display: block; width: 100%; height: 320px; resize: vertical;
+  background: var(--code-bg); color: var(--code-ink);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px; font: 400 14px/1.7 var(--font-mono); tab-size: 2; white-space: pre; overflow: auto; direction: ltr; text-align: left;
+}
+
+/* preview */
+.pv-head { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.devices { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin-bottom: 12px; }
+.dev { display: grid; justify-items: center; gap: 0; padding: 6px 2px 7px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; line-height: 1.3; min-width: 0; }
+.dev b { font-family: var(--font-mono); font-weight: 600; font-size: .95rem; }
+.dev span { font-size: .72rem; color: var(--muted); text-align: center; }
+.dev small { font: 400 .7rem var(--font-mono); color: var(--muted); direction: ltr; }
+.dev:hover { border-color: var(--accent); }
+.dev.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.dev.on span, .dev.on small { color: var(--accent-ink); opacity: .9; }
+.slider-row { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
+.slider-row input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
+.wlabel { font-family: var(--font-mono); font-size: .85rem; color: var(--muted); white-space: nowrap; direction: ltr; }
+.toggles { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin-bottom: 12px; font-size: .92rem; }
+.toggles label { display: inline-flex; gap: 7px; align-items: center; cursor: pointer; }
+.toggles input { accent-color: var(--accent); width: 16px; height: 16px; }
+.seg-ctl { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { border: 0; background: var(--surface); padding: 3px 12px; font: 500 .85rem var(--font-mono); }
+.seg-ctl button.on { background: var(--accent); color: var(--accent-ink); }
+.stage { position: relative; background: repeating-conic-gradient(var(--bg) 0 25%, var(--surface) 0 50%) 0 0 / 20px 20px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+#frame { position: absolute; top: 0; left: 50%; transform-origin: top center; border: 0; background: #fff; height: 640px; box-shadow: 0 0 0 1px var(--line); }
+.readout { margin: 10px 0 0 !important; font-size: .92rem; color: var(--muted); }
+.readout b { color: var(--ink); font-weight: 700; }
+.foot { margin: 20px 0 0; color: var(--muted); font-size: .88rem; max-width: 80ch; }
+
+#probe { position: absolute; left: -99999px; top: 0; width: 375px; height: 700px; border: 0; visibility: hidden; }
+#toast { position: fixed; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 10px; font-size: .92rem; max-width: calc(100% - 32px); z-index: 20; }
+
+@media (max-width: 1000px) {
+  .work { grid-template-columns: minmax(0, 1fr); }
+  .preview-col { position: static; }
+}
+@media (max-width: 520px) {
+  .targets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .devices { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .panel { padding: 14px; }
+  .top { padding: 18px 16px 14px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="app" dir="rtl" lang="ar">
+  <header class="top">
+    <div>
+      <h1>ملعب شبكة بوتستراب</h1>
+      <p>اكتب أكواد <span class="ltr">col</span> و<span class="ltr">offset</span> و<span class="ltr">row-cols</span> وشاهد النتيجة على ست أحجام شاشات. كل مستوى يفحص الكود على كل الشاشات.</p>
+    </div>
+    <nav class="levels" id="levels" aria-label="المستويات"></nav>
+  </header>
+
+  <main class="work">
+    <section class="col">
+      <div class="panel" id="lesson"></div>
+      <div class="panel">
+        <div class="editor-bar">
+          <strong>HTML</strong>
+          <div class="actions">
+            <button class="btn" id="reset" type="button">إعادة الكود</button>
+            <button class="btn" id="copy" type="button">نسخ صفحة كاملة</button>
+          </div>
+        </div>
+        <textarea id="code" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="محرر الكود"></textarea>
+      </div>
+    </section>
+
+    <section class="col preview-col">
+      <div class="panel">
+        <div class="pv-head"><h2 style="font-size:1.1rem;margin:0">المعاينة</h2><span class="wlabel" id="wlabel"></span></div>
+        <div class="devices" id="devices"></div>
+        <div class="slider-row">
+          <label for="width" style="font-size:.9rem;color:var(--muted)">عرض مخصص</label>
+          <input type="range" id="width" min="320" max="1600" step="1" value="768">
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="borders" checked> إظهار حدود الأعمدة</label>
+          <span class="seg-ctl" role="group" aria-label="اتجاه الصفحة">
+            <button type="button" id="dirRtl" class="on">RTL</button>
+            <button type="button" id="dirLtr">LTR</button>
+          </span>
+        </div>
+        <div class="stage" id="stage"><iframe id="frame" title="معاينة الصفحة"></iframe></div>
+        <p class="readout" id="readout"></p>
+      </div>
+    </section>
+  </main>
+
+  <p class="foot">المعاينة تستخدم نظام الشبكة نفسه المعمول به في Bootstrap 5 بنفس نقاط التوقف. زر النسخ يضيف رابط Bootstrap الأصلي لتجرب الكود في مشروعك.</p>
+  <iframe id="probe" title="فحص" aria-hidden="true" tabindex="-1"></iframe>
+  <div id="toast" role="status" hidden></div>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  var BPS = [
+    { k: 'xs',  min: 0,    w: 375,  name: 'موبايل' },
+    { k: 'sm',  min: 576,  w: 576,  name: 'موبايل أفقي' },
+    { k: 'md',  min: 768,  w: 768,  name: 'تابلت' },
+    { k: 'lg',  min: 992,  w: 992,  name: 'لابتوب' },
+    { k: 'xl',  min: 1200, w: 1200, name: 'ديسكتوب' },
+    { k: 'xxl', min: 1400, w: 1400, name: 'شاشة كبيرة' }
+  ];
+  var FRAME_H = 640;
+  function bpOf(w) { var r = BPS[0]; BPS.forEach(function (b) { if (w >= b.min) r = b; }); return r; }
+
+  /* ---------- Bootstrap 5 grid CSS (same classes and breakpoints) ---------- */
+  function gridCSS() {
+    var sp = [0, .25, .5, 1, 1.5, 3];
+    var pct = function (n) { return (n / 12 * 100) + '%'; };
+    var css = '*,*::before,*::after{box-sizing:border-box}' +
+      '.container,.container-fluid{width:100%;padding-inline:.75rem;margin-inline:auto}' +
+      '@media(min-width:576px){.container{max-width:540px}}@media(min-width:768px){.container{max-width:720px}}' +
+      '@media(min-width:992px){.container{max-width:960px}}@media(min-width:1200px){.container{max-width:1140px}}' +
+      '@media(min-width:1400px){.container{max-width:1320px}}' +
+      '.row{--gx:1.5rem;--gy:0;display:flex;flex-wrap:wrap;margin-top:calc(-1*var(--gy));margin-inline:calc(-.5*var(--gx))}' +
+      '.row>*{flex-shrink:0;width:100%;max-width:100%;padding-inline:calc(var(--gx)*.5);margin-top:var(--gy)}';
+    BPS.forEach(function (b) {
+      var s = b.k === 'xs' ? '' : '-' + b.k, r = '', n, i;
+      r += '.col' + s + '{flex:1 0 0%}.col' + s + '-auto{flex:0 0 auto;width:auto}';
+      for (n = 1; n <= 12; n++) r += '.col' + s + '-' + n + '{flex:0 0 auto;width:' + pct(n) + '}';
+      for (n = 0; n <= 11; n++) r += '.offset' + s + '-' + n + '{margin-inline-start:' + pct(n) + '}';
+      for (n = 1; n <= 6; n++) r += '.row-cols' + s + '-' + n + '>*{flex:0 0 auto;width:' + pct(12 / n) + '}';
+      for (i = 0; i <= 5; i++) {
+        r += '.g' + s + '-' + i + '{--gx:' + sp[i] + 'rem;--gy:' + sp[i] + 'rem}' +
+             '.gx' + s + '-' + i + '{--gx:' + sp[i] + 'rem}.gy' + s + '-' + i + '{--gy:' + sp[i] + 'rem}';
+        r += '.order' + s + '-' + i + '{order:' + i + '}';
+      }
+      r += '.order' + s + '-first{order:-1}.order' + s + '-last{order:6}';
+      ['none', 'block', 'flex'].forEach(function (d) { r += '.d' + s + '-' + d + '{display:' + d + '!important}'; });
+      r += '.text' + s + '-center{text-align:center!important}';
+      css += b.min ? '@media(min-width:' + b.min + 'px){' + r + '}' : r;
+    });
+    for (var j = 0; j <= 5; j++) {
+      css += '.mb-' + j + '{margin-bottom:' + sp[j] + 'rem}.mt-' + j + '{margin-top:' + sp[j] + 'rem}' +
+             '.p-' + j + '{padding:' + sp[j] + 'rem}.py-' + j + '{padding-block:' + sp[j] + 'rem}.px-' + j + '{padding-inline:' + sp[j] + 'rem}';
+    }
+    css += '.justify-content-center{justify-content:center!important}.justify-content-between{justify-content:space-between!important}' +
+           '.align-items-center{align-items:center!important}';
+    return css;
+  }
+  var GRID = gridCSS();
+  var BOX_CSS = '.box{background:#d8eef3;border:1px solid #7ab8c6;border-radius:4px;padding:14px 10px;min-height:56px;text-align:center;color:#0b3a46;font-size:14px}';
+  var PREV_CSS = 'body{margin:0;padding:18px 0 40px;font:15px/1.6 system-ui,"Segoe UI",Tahoma,Arial,sans-serif;color:#10252C;background:#fff}' + BOX_CSS +
+    'body.show .row>*{outline:1px dashed rgba(11,114,133,.6);outline-offset:-1px;background:rgba(11,114,133,.07)}' +
+    'body::after{content:"xs";position:fixed;bottom:8px;inset-inline-end:8px;font:600 11px/1 ui-monospace,Menlo,monospace;background:#10252C;color:#fff;padding:5px 7px;border-radius:4px;direction:ltr}' +
+    '@media(min-width:576px){body::after{content:"sm"}}@media(min-width:768px){body::after{content:"md"}}' +
+    '@media(min-width:992px){body::after{content:"lg"}}@media(min-width:1200px){body::after{content:"xl"}}@media(min-width:1400px){body::after{content:"xxl"}}';
+
+  /* ---------- levels ---------- */
+  function expand(map, def) {
+    var out = {}, prev = def;
+    BPS.forEach(function (b) { if (map[b.k] !== undefined) prev = map[b.k]; out[b.k] = prev; });
+    return out;
+  }
+  function mk(cls, pre) {
+    var rows = cls.map(function (c, i) {
+      var label = Array.isArray(pre) ? pre[i] : pre + ' ' + (i + 1);
+      return '    <div class="' + c + '">\n      <div class="box">' + label + '</div>\n    </div>';
+    }).join('\n');
+    return '<div class="container">\n  <div class="row g-3">\n' + rows + '\n  </div>\n</div>';
+  }
+  var PLAY = mk(['col-12 col-sm-6 col-lg-3', 'col-12 col-sm-6 col-lg-3', 'col-12 col-sm-6 col-lg-3', 'col-12 col-sm-6 col-lg-3'], 'عنصر');
+
+  var LEVELS = [
+    { id: 'l1', title: 'عمودان متساويان', items: 2,
+      goal: 'اجعل العنصرين يتقاسمان الصف بالتساوي على كل الشاشات: كل واحد منهما نصف الصف.',
+      exp: expand({ xs: [6, 6] }, [12]), off: expand({}, 0),
+      starter: mk(['', ''], 'عمود'),
+      solution: mk(['col-6', 'col-6'], 'عمود'),
+      hint: 'اكتب <code>col-6</code> على كل عمود، أو <code>col</code> وبوتستراب يقسم العرض بالتساوي.' },
+    { id: 'l2', title: 'فوق بعض ثم جنب بعض', items: 2,
+      goal: 'على الموبايل يظهر العنصران فوق بعضهما. من التابلت (md) وما فوق يظهران جنب بعض، لكل واحد نصف الصف.',
+      exp: expand({ xs: [12], md: [6, 6] }, [12]), off: expand({}, 0),
+      starter: mk(['col-6', 'col-6'], 'عمود'),
+      solution: mk(['col-md-6', 'col-md-6'], 'عمود'),
+      hint: '<code>col-6</code> ثابت على كل الشاشات. استبدله بـ <code>col-md-6</code> فيرجع العنصر لعرض الصف كاملاً تحت md.' },
+    { id: 'l3', title: 'كروت المنتجات', items: 3,
+      goal: 'ثلاثة كروت: كارت واحد في الصف على الموبايل، كارتان في الصف من md، وثلاثة كروت في صف واحد من lg.',
+      exp: expand({ xs: [12], md: [6, 6], lg: [4, 4, 4] }, [12]), off: expand({}, 0),
+      starter: mk(['col-4', 'col-4', 'col-4'], 'كارت'),
+      solution: mk(['col-md-6 col-lg-4', 'col-md-6 col-lg-4', 'col-md-6 col-lg-4'], 'كارت'),
+      hint: 'كل كارت يحتاج <code>col-md-6 col-lg-4</code>. الكارت الثالث ينزل لصف جديد عند md تلقائياً.' },
+    { id: 'l4', title: 'محتوى وشريط جانبي', items: 2,
+      goal: 'تحت lg يأخذ كل قسم عرض الصف. من lg يأخذ المحتوى 8 أعمدة والشريط الجانبي 4 أعمدة.',
+      exp: expand({ xs: [12], lg: [8, 4] }, [12]), off: expand({}, 0),
+      starter: mk(['col-md-6', 'col-md-6'], ['المحتوى الرئيسي', 'الشريط الجانبي']),
+      solution: mk(['col-lg-8', 'col-lg-4'], ['المحتوى الرئيسي', 'الشريط الجانبي']),
+      hint: '<code>col-lg-8</code> للمحتوى و<code>col-lg-4</code> للشريط. مجموع الأعمدة في الصف 12.' },
+    { id: 'l5', title: 'أربعة عناصر متدرجة', items: 4,
+      goal: 'موبايل: عنصر في الصف. من sm: عنصران في الصف. من lg: أربعة عناصر في صف واحد.',
+      exp: expand({ xs: [12], sm: [6, 6], lg: [3, 3, 3, 3] }, [12]), off: expand({}, 0),
+      starter: mk(['col-3', 'col-3', 'col-3', 'col-3'], 'عنصر'),
+      solution: mk(['col-sm-6 col-lg-3', 'col-sm-6 col-lg-3', 'col-sm-6 col-lg-3', 'col-sm-6 col-lg-3'], 'عنصر'),
+      hint: 'الصيغة <code>col-sm-6 col-lg-3</code>. الثلاثة أعمدة في lg لأن 12 ÷ 4 = 3.' },
+    { id: 'l6', title: 'معرض صور', items: 6,
+      goal: 'ست صور: صورتان في الصف على الموبايل، ثلاث صور من md، وست صور في صف واحد من xl.',
+      exp: expand({ xs: [6, 6], md: [4, 4, 4], xl: [2, 2, 2, 2, 2, 2] }, [12]), off: expand({}, 0),
+      starter: mk(['col-4', 'col-4', 'col-4', 'col-4', 'col-4', 'col-4'], 'صورة'),
+      solution: mk(['col-6 col-md-4 col-xl-2', 'col-6 col-md-4 col-xl-2', 'col-6 col-md-4 col-xl-2', 'col-6 col-md-4 col-xl-2', 'col-6 col-md-4 col-xl-2', 'col-6 col-md-4 col-xl-2'], 'صورة'),
+      hint: 'ابدأ بـ <code>col-6</code> للموبايل، ثم <code>col-md-4</code>، ثم <code>col-xl-2</code>.' },
+    { id: 'l7', title: 'تخطيط صفحة كاملة', items: 3,
+      goal: 'قائمة ومحتوى وإعلانات. موبايل: كل قسم بعرض الصف. من md: القائمة 3 والمحتوى 9 والإعلانات تنزل تحتهما. من xl: القائمة 2 والمحتوى 8 والإعلانات 2 في صف واحد.',
+      exp: expand({ xs: [12], md: [3, 9], xl: [2, 8, 2] }, [12]), off: expand({}, 0),
+      starter: mk(['col-4', 'col-4', 'col-4'], ['القائمة', 'المحتوى', 'الإعلانات']),
+      solution: mk(['col-md-3 col-xl-2', 'col-md-9 col-xl-8', 'col-xl-2'], ['القائمة', 'المحتوى', 'الإعلانات']),
+      hint: 'القائمة <code>col-md-3 col-xl-2</code>، المحتوى <code>col-md-9 col-xl-8</code>، والإعلانات <code>col-xl-2</code> فقط.' },
+    { id: 'l8', title: 'بطاقة في المنتصف', items: 1,
+      goal: 'بطاقة واحدة. موبايل وsm: بعرض الصف. md: عشرة أعمدة بإزاحة عمود واحد. من lg: ستة أعمدة بإزاحة ثلاثة.',
+      exp: expand({ xs: [12], md: [10], lg: [6] }, [12]), off: expand({ md: 1, lg: 3 }, 0),
+      starter: mk(['col-6'], ['بطاقة تسجيل الدخول']),
+      solution: mk(['col-md-10 offset-md-1 col-lg-6 offset-lg-3'], ['بطاقة تسجيل الدخول']),
+      hint: '<code>col-md-10 offset-md-1 col-lg-6 offset-lg-3</code>. الإزاحة تستمر على الشاشات الأكبر، لذلك غيّرها صراحة عند lg.' }
+  ];
+
+  /* ---------- state ---------- */
+  var state = { level: null, width: 768, dir: 'rtl', borders: true, codes: {} };
+  var done = (function () { try { return new Set(JSON.parse(localStorage.getItem('bsgrid-done') || '[]')); } catch (e) { return new Set(); } })();
+  function saveDone() { try { localStorage.setItem('bsgrid-done', JSON.stringify(Array.from(done))); } catch (e) {} }
+  function keyOf() { return state.level === null ? 'play' : String(state.level); }
+  function curLevel() { return state.level === null ? null : LEVELS[state.level]; }
+
+  var frame = $('frame'), probe = $('probe'), stage = $('stage'), codeEl = $('code');
+
+  function buildDoc(code, tag) {
+    return '<!doctype html><html lang="ar" dir="' + state.dir + '"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width,initial-scale=1"><style>' + GRID + PREV_CSS + '</style></head>' +
+      '<body class="' + (state.borders ? 'show' : '') + '">' + code + '<!--' + (tag || '') + '--></body></html>';
+  }
+  function exportDoc() {
+    var rtl = state.dir === 'rtl';
+    return '<!doctype html>\n<html lang="ar" dir="' + state.dir + '">\n<head>\n  <meta charset="utf-8">\n' +
+      '  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>صفحتي</title>\n' +
+      '  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap' + (rtl ? '.rtl' : '') + '.min.css" rel="stylesheet">\n' +
+      '  <style>' + BOX_CSS + '</style>\n</head>\n<body>\n' + codeEl.value + '\n' +
+      '  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"><\/script>\n</body>\n</html>\n';
+  }
+
+  /* ---------- measuring ---------- */
+  function measure(doc) {
+    var row = doc.querySelector('.row');
+    if (!row) return null;
+    var kids = Array.prototype.slice.call(row.children);
+    if (!kids.length) return { count: 0, spans: [], off: 0 };
+    var rr = row.getBoundingClientRect();
+    var rtl = doc.documentElement.dir === 'rtl';
+    var r0 = kids[0].getBoundingClientRect();
+    var first = kids.filter(function (k) { return Math.abs(k.getBoundingClientRect().top - r0.top) < 3; });
+    var spans = first.map(function (k) { return Math.round(k.getBoundingClientRect().width / rr.width * 12); });
+    var off = Math.round((rtl ? rr.right - r0.right : r0.left - rr.left) / rr.width * 12);
+    return { count: kids.length, spans: spans, off: off };
+  }
+  function sameArr(a, b) { return a.length === b.length && a.every(function (v, i) { return v === b[i]; }); }
+  function load(f, html) { return new Promise(function (res) { f.onload = function () { res(); }; f.srcdoc = html; }); }
+  function plus(a) { return '<bdi dir="ltr">' + a.join(' + ') + '</bdi>'; }
+
+  /* ---------- rendering ---------- */
+  var renderTimer = null;
+  function renderPreview() {
+    frame.onload = function () { updateReadout(); };
+    frame.srcdoc = buildDoc(codeEl.value);
+  }
+  function updateReadout() {
+    var b = bpOf(state.width), m = null;
+    try { m = measure(frame.contentDocument); } catch (e) {}
+    $('wlabel').textContent = state.width + 'px · ' + b.k;
+    var txt;
+    if (!m) txt = 'أضف عنصراً بالكلاس <code>row</code> لتظهر الأعمدة.';
+    else if (!m.count) txt = 'الصف فارغ.';
+    else txt = 'الصف الأول عند <b>' + b.k + '</b>: ' + plus(m.spans) + (m.off ? ' · إزاحة ' + m.off : '');
+    $('readout').innerHTML = txt;
+  }
+  function fit() {
+    var avail = stage.clientWidth || 360;
+    var s = Math.min(1, avail / state.width);
+    frame.style.width = state.width + 'px';
+    frame.style.transform = 'translateX(-50%) scale(' + s + ')';
+    stage.style.height = Math.round(FRAME_H * s) + 'px';
+  }
+  function setWidth(w) {
+    state.width = w;
+    $('width').value = w;
+    fit();
+    renderDevices();
+    setTimeout(updateReadout, 80);
+  }
+  function renderDevices() {
+    var cur = bpOf(state.width).k;
+    $('devices').innerHTML = BPS.map(function (b) {
+      return '<button type="button" class="dev' + (b.k === cur ? ' on' : '') + '" data-w="' + b.w + '"><b>' + b.k + '</b><span>' + b.name + '</span><small>' + b.w + '</small></button>';
+    }).join('');
+  }
+  var CHECK_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
+  function renderLevels() {
+    $('levels').innerHTML = '<button type="button" class="pill' + (state.level === null ? ' on' : '') + '" data-l="play">ملعب حر</button>' +
+      LEVELS.map(function (L, i) {
+        var d = done.has(L.id);
+        return '<button type="button" class="pill' + (state.level === i ? ' on' : '') + (d ? ' done' : '') + '" data-l="' + i + '" aria-label="المستوى ' + (i + 1) + ': ' + L.title + (d ? ' (مكتمل)' : '') + '" title="' + L.title + '"><span>' + (i + 1) + '</span>' + (d ? CHECK_SVG : '') + '</button>';
+      }).join('');
+  }
+  function strip(spans, off) {
+    var h = '', sum = spans.reduce(function (a, b) { return a + b; }, 0);
+    if (off) h += '<i class="seg off" style="flex:' + off + ' 1 0"></i>';
+    spans.forEach(function (n) { h += '<i class="seg" style="flex:' + n + ' 1 0">' + n + '</i>'; });
+    var rest = 12 - off - sum;
+    if (rest > 0) h += '<i class="seg off" style="flex:' + rest + ' 1 0"></i>';
+    return '<span class="strip">' + h + '</span>';
+  }
+  function renderLesson() {
+    var el = $('lesson'), L = curLevel();
+    if (!L) {
+      el.innerHTML = '<div class="eyebrow">ملعب حر</div><h2>جرّب أي شبكة</h2>' +
+        '<p>عدّل الكود وغيّر عرض الشاشة من الأزرار أو المنزلق. تحت المعاينة يظهر توزيع الصف الأول عند العرض الحالي.</p>' +
+        '<dl class="ref"><dt><code>col-md-6</code></dt><dd>نصف الصف من md وما فوق</dd>' +
+        '<dt><code>offset-lg-3</code></dt><dd>إزاحة ثلاثة أعمدة من lg</dd>' +
+        '<dt><code>row-cols-2</code></dt><dd>عمودان في كل صف لأبناء الـ row</dd>' +
+        '<dt><code>g-3</code></dt><dd>مسافة بين الأعمدة</dd></dl>';
+      return;
+    }
+    el.innerHTML = '<div class="eyebrow">المستوى ' + (state.level + 1) + ' من ' + LEVELS.length + '</div>' +
+      '<h2>' + L.title + '</h2><p>' + L.goal + '</p>' +
+      '<div class="targets">' + BPS.map(function (b) {
+        return '<button type="button" class="tcell" data-w="' + b.w + '" data-k="' + b.k + '" title="عرض ' + b.k + ' في المعاينة"><span class="tlabel"><b>' + b.k + '</b><span>' + b.w + '</span></span>' + strip(L.exp[b.k], L.off[b.k]) + '</button>';
+      }).join('') + '</div>' +
+      '<div class="actions"><button type="button" class="btn primary" data-act="check">تحقق</button>' +
+      '<button type="button" class="btn" data-act="hint">تلميح</button>' +
+      '<button type="button" class="btn" data-act="solution">عرض الحل</button></div>' +
+      '<p class="msg" id="msg" aria-live="polite"></p><p class="hint" id="hint" hidden>' + L.hint + '</p>';
+  }
+  function setMsg(html, kind) {
+    var m = $('msg'); if (!m) return;
+    m.className = 'msg' + (kind ? ' ' + kind : '');
+    m.innerHTML = html;
+  }
+  function toast(t) {
+    var el = $('toast'); el.textContent = t; el.hidden = false;
+    clearTimeout(toast._t); toast._t = setTimeout(function () { el.hidden = true; }, 2600);
+  }
+  function arm(btn, fn, text) {
+    if (btn.dataset.armed) { clearTimeout(btn._t); delete btn.dataset.armed; btn.textContent = btn.dataset.label; fn(); return; }
+    btn.dataset.label = btn.textContent; btn.dataset.armed = '1'; btn.textContent = text;
+    btn._t = setTimeout(function () { delete btn.dataset.armed; btn.textContent = btn.dataset.label; }, 3000);
+  }
+
+  /* ---------- checking ---------- */
+  async function check() {
+    var L = curLevel(); if (!L) return;
+    setMsg('جارٍ الفحص على الشاشات الست...');
+    var res = [];
+    for (var i = 0; i < BPS.length; i++) {
+      probe.style.width = BPS[i].w + 'px';
+      await load(probe, buildDoc(codeEl.value, BPS[i].k));
+      var m = null; try { m = measure(probe.contentDocument); } catch (e) {}
+      res.push(m);
+    }
+    var allOk = true, bad = null;
+    var cells = document.querySelectorAll('.tcell');
+    BPS.forEach(function (b, i) {
+      var m = res[i], e = L.exp[b.k], o = L.off[b.k];
+      var ok = !!m && m.count === L.items && sameArr(m.spans, e) && m.off === o;
+      if (cells[i]) { cells[i].classList.remove('ok', 'bad'); cells[i].classList.add(ok ? 'ok' : 'bad'); }
+      if (!ok && allOk) { allOk = false; bad = { b: b, m: m, e: e, o: o }; }
+    });
+    if (allOk) {
+      done.add(L.id); saveDone(); renderLevels();
+      var next = state.level + 1 < LEVELS.length;
+      setMsg('ممتاز. الشبكة صحيحة على كل الشاشات.' + (next ? '<button type="button" class="btn primary" data-act="next">المستوى التالي</button>' : ' أنهيت كل المستويات.'), 'ok');
+    } else if (!bad.m) {
+      setMsg('لا يوجد عنصر بالكلاس <code>row</code>. ضع الأعمدة داخل <code>row</code>.', 'bad');
+    } else if (bad.m.count !== L.items) {
+      setMsg('عدد العناصر داخل <code>row</code> يجب أن يكون ' + L.items + ' والحالي ' + bad.m.count + '.', 'bad');
+    } else if (!sameArr(bad.m.spans, bad.e)) {
+      setMsg('عند <b>' + bad.b.k + '</b> (' + bad.b.w + 'px) المتوقع ' + plus(bad.e) + ' والحالي ' + plus(bad.m.spans) + '.', 'bad');
+    } else {
+      setMsg('عند <b>' + bad.b.k + '</b> (' + bad.b.w + 'px) الإزاحة المتوقعة ' + bad.o + ' والحالية ' + bad.m.off + '.', 'bad');
+    }
+  }
+
+  /* ---------- events ---------- */
+  function go(l) {
+    state.level = l === 'play' ? null : +l;
+    var k = keyOf();
+    if (!(k in state.codes)) state.codes[k] = state.level === null ? PLAY : LEVELS[state.level].starter;
+    codeEl.value = state.codes[k];
+    renderLevels(); renderLesson(); renderPreview();
+  }
+  $('levels').addEventListener('click', function (e) { var b = e.target.closest('[data-l]'); if (b) go(b.dataset.l); });
+  $('devices').addEventListener('click', function (e) { var b = e.target.closest('[data-w]'); if (b) setWidth(+b.dataset.w); });
+  $('width').addEventListener('input', function (e) { setWidth(+e.target.value); });
+  $('lesson').addEventListener('click', function (e) {
+    var cell = e.target.closest('.tcell');
+    if (cell) { setWidth(+cell.dataset.w); return; }
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var act = b.dataset.act, L = curLevel();
+    if (act === 'check') check();
+    else if (act === 'hint') { var h = $('hint'); h.hidden = !h.hidden; }
+    else if (act === 'next') go(state.level + 1);
+    else if (act === 'solution' && L) arm(b, function () {
+      codeEl.value = L.solution; state.codes[keyOf()] = L.solution; renderPreview(); setMsg('');
+    }, 'تأكيد: استبدال كودك؟');
+  });
+  codeEl.addEventListener('input', function () {
+    state.codes[keyOf()] = codeEl.value;
+    document.querySelectorAll('.tcell').forEach(function (c) { c.classList.remove('ok', 'bad'); });
+    setMsg('');
+    clearTimeout(renderTimer); renderTimer = setTimeout(renderPreview, 250);
+  });
+  codeEl.addEventListener('keydown', function (e) {
+    if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      var s = codeEl.selectionStart, t = codeEl.selectionEnd;
+      codeEl.value = codeEl.value.slice(0, s) + '  ' + codeEl.value.slice(t);
+      codeEl.selectionStart = codeEl.selectionEnd = s + 2;
+      codeEl.dispatchEvent(new Event('input'));
+    }
+  });
+  $('reset').addEventListener('click', function (e) {
+    arm(e.currentTarget, function () {
+      var L = curLevel(), v = L ? L.starter : PLAY;
+      codeEl.value = v; state.codes[keyOf()] = v; renderPreview(); setMsg('');
+    }, 'تأكيد الإعادة؟');
+  });
+  $('copy').addEventListener('click', async function () {
+    try { await navigator.clipboard.writeText(exportDoc()); toast('تم نسخ صفحة HTML كاملة'); }
+    catch (e) { codeEl.focus(); codeEl.select(); toast('تعذر النسخ تلقائياً. الكود محدد، انسخه بـ Ctrl+C'); }
+  });
+  $('borders').addEventListener('change', function (e) {
+    state.borders = e.target.checked;
+    try { frame.contentDocument.body.classList.toggle('show', state.borders); } catch (err) {}
+  });
+  function setDir(d) {
+    state.dir = d;
+    $('dirRtl').classList.toggle('on', d === 'rtl'); $('dirLtr').classList.toggle('on', d === 'ltr');
+    renderPreview();
+  }
+  $('dirRtl').addEventListener('click', function () { setDir('rtl'); });
+  $('dirLtr').addEventListener('click', function () { setDir('ltr'); });
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(stage); else window.addEventListener('resize', fit);
+
+  /* ---------- boot ---------- */
+  renderDevices();
+  go('play');
+  fit();
+})();
+</script>
+
+</body></html>
